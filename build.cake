@@ -1,6 +1,9 @@
 Setup(context => new BuildData(
+    context.HasArgument("preview"),
     MakeAbsolute(Directory("./artifacts")),
-    MakeAbsolute(File("./src/BRI.TestWeb/BRI.TestWeb.csproj"))
+    MakeAbsolute(File("./src/BRI.TestWeb/BRI.TestWeb.csproj")),
+    MakeAbsolute(Directory("./src/BRI.TestWeb/layout")),
+    System.Environment.GetEnvironmentVariable("AZURE_CONTAINER_REGISTRY")
 ));
 
 
@@ -27,8 +30,17 @@ Task("Inventory-Registry")
             )
     );
 
-Task("Generate-Statiq-Web")
+Task("Prepare-Statiq-Web")
     .IsDependentOn("Inventory-Registry")
+    .Does<BuildData>(
+        static (context, data) => context.CopyDirectory(
+            data.LayoutPath,
+            data.StatiqInputPath
+        )
+    );
+
+Task("Generate-Statiq-Web")
+    .IsDependentOn("Prepare-Statiq-Web")
     .Does<BuildData>(
         static (context, data) => context.DotNetRun(
             data.ProjectPath.FullPath,
@@ -36,9 +48,9 @@ Task("Generate-Statiq-Web")
                 Configuration = "Release",
                 WorkingDirectory = data.ArtifactsPath,
                 ArgumentCustomization = args => args
-                                                    .Append("--")
-                                                    .AppendSwitchQuoted("--root", data.ArtifactsPath.FullPath)
-                                                    .AppendSwitchQuoted("--input", data.InputPath.Combine(data.AzureContainerRegistry).FullPath)
+                                                    .Append(data.Preview ? "-- preview --virtual-dir WCOM.Bicep" : "--")
+                                                    .AppendSwitchQuoted("--root", data.InputPath.FullPath)
+                                                    .AppendSwitchQuoted("--input", data.StatiqInputPath.FullPath)
                                                     .AppendSwitchQuoted("--output", data.OutputPath.FullPath)
             }
         )
@@ -54,16 +66,19 @@ Task("GitHub-Actions")
 RunTarget(Argument("target", "Default"));
 
 public record BuildData(
+    bool Preview,
     DirectoryPath ArtifactsPath,
-    FilePath ProjectPath
+    FilePath ProjectPath,
+    DirectoryPath LayoutPath,
+    string AzureContainerRegistry
 )
 {
     public DirectoryPath InputPath { get; } = ArtifactsPath.Combine("input");
+    public DirectoryPath StatiqInputPath { get; } = ArtifactsPath.Combine("input").Combine(AzureContainerRegistry);
     public DirectoryPath OutputPath { get; } = ArtifactsPath.Combine("output");
     public DirectoryPath[] DirectoryPathsToClean { get; } = new []{
                                                                     ArtifactsPath,
                                                                     ArtifactsPath.Combine("input"),
                                                                     ArtifactsPath.Combine("output")
                                                                 };
-    public string AzureContainerRegistry { get; } = System.Environment.GetEnvironmentVariable("AZURE_CONTAINER_REGISTRY");
 }
