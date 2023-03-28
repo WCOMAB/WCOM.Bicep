@@ -38,7 +38,7 @@ Task("Generate-Statiq-Web")
                 ArgumentCustomization = args => args
                                                     .Append("--")
                                                     .AppendSwitchQuoted("--root", data.ArtifactsPath.FullPath)
-                                                    .AppendSwitchQuoted("--input", data.InputPath.FullPath)
+                                                    .AppendSwitchQuoted("--input", data.InputPath.Combine(data.AzureContainerRegistry).FullPath)
                                                     .AppendSwitchQuoted("--output", data.OutputPath.FullPath)
             }
         )

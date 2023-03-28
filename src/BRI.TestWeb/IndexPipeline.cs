@@ -101,7 +101,7 @@ public sealed class Index : Content
                 [Keys.Title] = fullPath,
                 ["Index"] = true,
                 ["Summary"] = string.Concat("Index for ", fullPath),
-                ["ShowInNavbar"] = true,
+                ["ShowInNavbar"] = path.Length < 3,
                 ["IsPage"] = true,
                 ["Tags"] = new[]{ "TOC" }
             }, context.GetContentProvider(builder.ToString()))
