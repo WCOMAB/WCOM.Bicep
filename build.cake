@@ -73,12 +73,13 @@ public record BuildData(
     string AzureContainerRegistry
 )
 {
-    public DirectoryPath InputPath { get; } = ArtifactsPath.Combine("input");
+    private const string Input = "input";
+    public DirectoryPath InputPath { get; } = ArtifactsPath.Combine(Input);
     public DirectoryPath StatiqInputPath => InputPath; //{ get; } = ArtifactsPath.Combine("input").Combine(AzureContainerRegistry);
     public DirectoryPath OutputPath { get; } = ArtifactsPath.Combine("output");
     public DirectoryPath[] DirectoryPathsToClean { get; } = new []{
                                                                     ArtifactsPath,
-                                                                    ArtifactsPath.Combine("input"),
+                                                                    ArtifactsPath.Combine(Input),
                                                                     ArtifactsPath.Combine("output")
                                                                 };
 }

@@ -4,7 +4,7 @@
     foreach (var doc in Outputs.AsDestinationTree().GetAncestorsOf(Document, true).Reverse())
     {
         @(first ? string.Empty : " / ")
-        @Html.DocumentLink(doc, doc.GetString("NavbarTitle", doc.GetTitle()))
+        @Html.DocumentLink(doc, doc.GetString("NavbarTitle", first ? Document.GetString("SiteTitle") :  doc.GetTitle()))
         first = false;
     }
 }
