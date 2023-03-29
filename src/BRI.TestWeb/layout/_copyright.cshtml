@@ -1,0 +1,12 @@
+<p>
+@{
+    var first = true;
+    foreach (var doc in Outputs.AsDestinationTree().GetAncestorsOf(Document, true).Reverse())
+    {
+        @(first ? string.Empty : " / ")
+        @Html.DocumentLink(doc, doc.GetString("NavbarTitle", doc.GetTitle()))
+        first = false;
+    }
+}
+</p>
+<p class="copyright">@Document.GetString(WebKeys.Copyright)</p>

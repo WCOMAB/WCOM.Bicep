@@ -49,7 +49,7 @@ Task("Generate-Statiq-Web")
                 WorkingDirectory = data.ArtifactsPath,
                 ArgumentCustomization = args => args
                                                     .Append(data.Preview ? "-- preview --virtual-dir WCOM.Bicep" : "--")
-                                                    .AppendSwitchQuoted("--root", data.InputPath.FullPath)
+                                                    .AppendSwitchQuoted("--root", data.ArtifactsPath.FullPath)
                                                     .AppendSwitchQuoted("--input", data.StatiqInputPath.FullPath)
                                                     .AppendSwitchQuoted("--output", data.OutputPath.FullPath)
             }
@@ -74,7 +74,7 @@ public record BuildData(
 )
 {
     public DirectoryPath InputPath { get; } = ArtifactsPath.Combine("input");
-    public DirectoryPath StatiqInputPath { get; } = ArtifactsPath.Combine("input").Combine(AzureContainerRegistry);
+    public DirectoryPath StatiqInputPath => InputPath; //{ get; } = ArtifactsPath.Combine("input").Combine(AzureContainerRegistry);
     public DirectoryPath OutputPath { get; } = ArtifactsPath.Combine("output");
     public DirectoryPath[] DirectoryPathsToClean { get; } = new []{
                                                                     ArtifactsPath,

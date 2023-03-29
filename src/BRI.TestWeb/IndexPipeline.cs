@@ -4,7 +4,6 @@ using System.Text;
 
 namespace BRI.TestWeb;
 
-
 /// <summary>
 /// Pipeline for creating index documents.
 /// </summary>
@@ -65,10 +64,11 @@ public sealed class Index : Content
         var inputPath = context.FileSystem
             .RootPath.Combine(context.FileSystem.InputPaths[0])
             .Combine(indexPath);
+        var pageName = path.LastOrDefault();
 
         // Create a Markdown-based index placeholder
         var builder = new StringBuilder();
-        builder.AppendLine($"# {path.LastOrDefault()}");
+        builder.AppendLine($"# {pageName}");
         builder.AppendLine();
 
         var children = metadata.GetDocumentList(Keys.Children)
@@ -95,13 +95,15 @@ public sealed class Index : Content
         }
 
         string fullPath = string.Join("/", path);
+        string fullNamePath = string.Join(" / ", path);
         return Task.FromResult(
             context.CreateDocument(inputPath, indexPath, new MetadataDictionary(metadata)
             {
-                [Keys.Title] = fullPath,
+                [Keys.Title] = pageName,
+                ["IndexName"] = fullNamePath,
                 ["Index"] = true,
                 ["Summary"] = string.Concat("Index for ", fullPath),
-                ["ShowInNavbar"] = path.Length < 3,
+                ["ShowInNavbar"] = path.Length < 2,
                 ["IsPage"] = true,
                 ["Tags"] = new[]{ "TOC" }
             }, context.GetContentProvider(builder.ToString()))
