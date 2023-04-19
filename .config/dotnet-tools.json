@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "bri": {
-      "version": "2023.3.2.39",
+      "version": "2023.4.19.42",
       "commands": [
         "bri"
       ]
