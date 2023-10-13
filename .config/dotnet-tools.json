@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "bri": {
-      "version": "2023.4.19.42",
+      "version": "2023.7.12.46",
       "commands": [
         "bri"
       ]
     },
     "cake.tool": {
-      "version": "3.0.0",
+      "version": "3.1.0",
       "commands": [
         "dotnet-cake"
       ]
