@@ -26,7 +26,7 @@ jobs:
           global-json-file: global.json
 
       - name: Run Cake script
-        uses: cake-build/cake-action@e313098c20bca582d10e19cbae215378d1f3b903
+        uses: cake-build/cake-action@5167c3f6a9e15c76f009de2acdfb9488552bc0b9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AZURE_CONTAINER_REGISTRY: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
