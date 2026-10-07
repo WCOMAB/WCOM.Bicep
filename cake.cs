@@ -1,10 +1,17 @@
-Setup(context => new BuildData(
-    context.HasArgument("preview"),
-    MakeAbsolute(Directory("./artifacts")),
-    MakeAbsolute(File("./src/BRI.TestWeb/BRI.TestWeb.csproj")),
-    MakeAbsolute(Directory("./src/BRI.TestWeb/layout")),
-    System.Environment.GetEnvironmentVariable("AZURE_CONTAINER_REGISTRY")
-));
+#:sdk Cake.Sdk
+
+Setup(context =>
+{
+    InstallTool("dotnet:?package=bri&version=2026.9.9.1056");
+
+    return new BuildData(
+        context.HasArgument("preview"),
+        MakeAbsolute(Directory("./artifacts")),
+        MakeAbsolute(File("./src/BRI.TestWeb/BRI.TestWeb.csproj")),
+        MakeAbsolute(Directory("./src/BRI.TestWeb/layout")),
+        System.Environment.GetEnvironmentVariable("AZURE_CONTAINER_REGISTRY")
+    );
+});
 
 
 Task("Clean")
@@ -15,18 +22,16 @@ Task("Clean")
 Task("Inventory-Registry")
     .IsDependentOn("Clean")
     .Does<BuildData>(
-        static (context, data) => context.DotNetTool(
-                "tool",
-                new DotNetToolSettings {
-                    ArgumentCustomization = args => args
-                                                        .Append("run")
-                                                        .Append("--")
-                                                        .Append("bri")
-                                                        .Append("inventory")
-                                                        .AppendQuotedSecret(data.AzureContainerRegistry)
-                                                        .AppendQuoted(data.InputPath.FullPath),
+        static (context, data) => context.Command(
+                new CommandSettings {
+                    ToolName = "bri",
+                    ToolExecutableNames = new[] { "bri", "bri.exe" },
                     WorkingDirectory = data.ArtifactsPath
-                }
+                },
+                new ProcessArgumentBuilder()
+                    .Append("inventory")
+                    .AppendQuotedSecret(data.AzureContainerRegistry)
+                    .AppendQuoted(data.InputPath.FullPath)
             )
     );
 
