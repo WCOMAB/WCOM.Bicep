@@ -1,3 +1,4 @@
+#!/usr/bin/env dotnet
 #:sdk Cake.Sdk
 
 Setup(context =>
