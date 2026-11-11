@@ -1,9 +1,9 @@
 #!/usr/bin/env dotnet
-#:sdk Cake.Sdk
+#:sdk Cake.Sdk@7.0.0
 
 Setup(context =>
 {
-    InstallTool("dotnet:?package=bri&version=2026.9.9.1056");
+    InstallTool("dotnet:?package=bri&version=2026.11.11.1200");
 
     return new BuildData(
         context.HasArgument("preview"),
@@ -23,17 +23,30 @@ Task("Clean")
 Task("Inventory-Registry")
     .IsDependentOn("Clean")
     .Does<BuildData>(
-        static (context, data) => context.Command(
+        static async (context, data) => {
+            var workload = data.ShouldPrepareAzureWorkloadIdentity()
+                            ? await GitHubActions.Commands.AzurePrepareWorkloadIdentity(data.AzureTenantId!, data.AzureClientId!)
+                            : null;
+
+            context.Command(
                 new CommandSettings {
                     ToolName = "bri",
                     ToolExecutableNames = new[] { "bri", "bri.exe" },
-                    WorkingDirectory = data.ArtifactsPath
+                    WorkingDirectory = data.ArtifactsPath,
+                    EnvironmentVariables = workload is null
+                        ? new Dictionary<string, string>()
+                        : new Dictionary<string, string> {
+                            ["AZURE_TENANT_ID"] = workload.TenantId,
+                            ["AZURE_CLIENT_ID"] = workload.ClientId,
+                            ["AZURE_FEDERATED_TOKEN_FILE"] = workload.FederatedTokenFile.FullPath
+                        }
                 },
                 new ProcessArgumentBuilder()
                     .Append("inventory")
                     .AppendQuotedSecret(data.AzureContainerRegistry)
                     .AppendQuoted(data.InputPath.FullPath)
-            )
+            );
+        }
     );
 
 Task("Prepare-Statiq-Web")
@@ -83,6 +96,11 @@ public record BuildData(
     public DirectoryPath InputPath { get; } = ArtifactsPath.Combine(Input);
     public DirectoryPath StatiqInputPath => InputPath; //{ get; } = ArtifactsPath.Combine("input").Combine(AzureContainerRegistry);
     public DirectoryPath OutputPath { get; } = ArtifactsPath.Combine("output");
+    public string? AzureTenantId { get; } = System.Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+    public string? AzureClientId { get; } = System.Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+    public bool ShouldPrepareAzureWorkloadIdentity() => GitHubActions.IsRunningOnGitHubActions
+                                                        && !string.IsNullOrWhiteSpace(AzureTenantId)
+                                                        && !string.IsNullOrWhiteSpace(AzureClientId);
     public DirectoryPath[] DirectoryPathsToClean { get; } = new []{
                                                                     ArtifactsPath,
                                                                     ArtifactsPath.Combine(Input),
